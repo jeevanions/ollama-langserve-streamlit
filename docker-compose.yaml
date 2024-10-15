@@ -1,0 +1,82 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis-stack
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ollama-network
+
+  qdrant:
+    # network_mode: "host"
+    image: qdrant/qdrant
+    container_name: qdrant
+    volumes:
+      - ./qdrant_storage:/qdrant/storage:z
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ollama-network
+
+  backend:
+    # network_mode: "host"
+    build:
+      context: ./backend
+    container_name: langserve_backend
+    # command: ["sh", "-c", "sleep 3600"]
+    ports:
+      - "8000:8000"
+      - "11434:11434"
+    environment:
+      - REDIS_HOST=redis-stack
+      - REDIS_PORT=6379
+      - QDRANT_HOST=qdrant
+      - REDIS_URL=redis://redis-stack:6379
+      - COLLECTION_NAME=BillOfRights
+      - QDRANT_URL=http://qdrant:6333
+      - LLM_MODEL=llama3.2
+      - EMBEDDING_MODEL=snowflake-arctic-embed:l
+      - EMBEDDING_DIMENSION=1024
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    networks:
+      - ollama-network
+
+  frontend:
+    # network_mode: "host"
+    build:
+      context: ./frontend
+    container_name: streamlit_frontend
+    ports:
+      - "8501:8501"
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - ollama-network
+    environment:
+      - BACKEND_URL=http://backend:8000
+
+networks:
+  ollama-network:
+    driver: bridge

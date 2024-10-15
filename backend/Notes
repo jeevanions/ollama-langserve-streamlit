@@ -1,0 +1,9 @@
+docker run -d --name redis-stack -p 6379:6379 redis/redis-stack:latest
+
+
+docker run -p 6333:6333 -p 6334:6334 \
+    -v $(pwd)/qdrant_storage:/qdrant/storage:z \
+    qdrant/qdrant
+
+
+docker-compose down && docker-compose build --no-cache && docker-compose up
