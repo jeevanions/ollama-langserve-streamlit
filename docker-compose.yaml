@@ -2,9 +2,9 @@ version: '3.9'
 
 services:
   redis:
-    image: redis:latest
+    image: redis/redis-stack:latest
     container_name: redis-stack
-    command: redis-server --save 60 1 --loglevel warning
+    # command: redis-stack-server --save 60 1 --loglevel warning
     ports:
       - "6379:6379"
     healthcheck:
@@ -35,19 +35,17 @@ services:
       - ollama-network
 
   backend:
-    # network_mode: "host"
     build:
       context: ./backend
     container_name: langserve_backend
     # command: ["sh", "-c", "sleep 3600"]
     ports:
       - "8000:8000"
-      - "11434:11434"
     environment:
       - REDIS_HOST=redis-stack
       - REDIS_PORT=6379
       - QDRANT_HOST=qdrant
-      - REDIS_URL=redis://redis-stack:6379
+      - REDIS_URL=redis://redis:6379
       - COLLECTION_NAME=BillOfRights
       - QDRANT_URL=http://qdrant:6333
       - LLM_MODEL=llama3.2
@@ -63,7 +61,6 @@ services:
       - ollama-network
 
   frontend:
-    # network_mode: "host"
     build:
       context: ./frontend
     container_name: streamlit_frontend

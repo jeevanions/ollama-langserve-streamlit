@@ -64,7 +64,7 @@ print("Before LLM Initialization")
 llm = OllamaLLM(
     model=llm_model,
     callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
-    base_url="http://localhost:11434",
+    base_url=ollama_base_url,
 )
 print("After LLM Initialization")
 
@@ -93,18 +93,18 @@ Context:
 rag_prompt = PromptTemplate.from_template(RAG_PROMPT_TEMPLATE)
 
 # Connecting to redis
-# redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
-# print("Connection Done!")
+redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
+print("Connection Done!")
 
 # Semantic Cache
-# print(REDIS_URL)
-# semantic_cache = RedisSemanticCache(
-#     redis_url=REDIS_URL, embeddings=embeddings, distance_threshold=0.3
-# )
-# print("After RedisSemanticCache Initialization")
+print(REDIS_URL)
+semantic_cache = RedisSemanticCache(
+    redis_url=REDIS_URL, embeddings=embeddings, distance_threshold=0.3
+)
+print("After RedisSemanticCache Initialization")
 
-# set_llm_cache(semantic_cache)
-# print("After set_llm_cache(semantic_cache)")
+set_llm_cache(semantic_cache)
+print("After set_llm_cache(semantic_cache)")
 
 # Vector Store Qdrant Running Locally on docker container
 
