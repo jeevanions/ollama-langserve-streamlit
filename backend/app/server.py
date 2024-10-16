@@ -44,10 +44,8 @@ redis_port = config("REDIS_PORT")
 embedding_dimension = config("EMBEDDING_DIMENSION")
 ollama_base_url = config("OLLAMA_BASE_URL")
 
-
 class Input(BaseModel):
     query: str
-
 
 app = FastAPI()
 # Set all CORS enabled origins
